@@ -49,7 +49,7 @@ with:
     pkgdir: '${{ github.workspace }}/artifacts/deb-build/globalprotect-openconnect*/'
 ```
 
-The example above will publish the package to the series: `binoic`, `focal`, `hirsute`, `impish`, and `jammy`.
+The example above will publish the package to the series: `binoic`, `focal`, `hirsute`, `impish`, and `jammy`. See: [ppa:yuezk/globalprotect-openconnect](https://launchpad.net/~yuezk/+archive/ubuntu/globalprotect-openconnect)
 
 ## Real-world applications
 
