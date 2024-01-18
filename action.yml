@@ -5,7 +5,7 @@ branding:
   icon: package
 inputs:
   repository:
-    description: 'The PPA respository, e.g. ppa:yuezk/globalprotect-openconnect'
+    description: 'The PPA repository, e.g. ppa:yuezk/globalprotect-openconnect'
     required: true
   gpg_private_key:
     description: 'GPG private key exported as an ASCII armored version or its base64 encoding'
@@ -18,6 +18,9 @@ inputs:
     required: true
   series:
     description: 'The series to which the package will be published, separated by space. e.g., "bionic focal"'
+    required: false
+  extra_series:
+    description: 'The extra series to which the package will be published, separated by space. e.g., "bionic focal"'
     required: false
   is_native:
     description: 'Indicates whether it is a native debian package or not'

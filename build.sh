@@ -27,6 +27,11 @@ if [[ -z "$SERIES" ]]; then
     SERIES=$(distro-info --supported)
 fi
 
+# Add extra series if it's been set
+if [[ -n "$INPUT_EXTRA_SERIES" ]]; then
+    SERIES="$INPUT_EXTRA_SERIES $SERIES"
+fi
+
 echo "::group::Importing GPG private key..."
 GPG_KEY_ID=$(echo "$GPG_PRIVATE_KEY" | gpg --import-options show-only --import | sed -n '2s/^\s*//p')
 echo $GPG_KEY_ID
