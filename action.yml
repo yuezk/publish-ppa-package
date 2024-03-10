@@ -5,7 +5,7 @@ branding:
   icon: package
 inputs:
   repository:
-    description: 'The PPA repository, e.g. ppa:yuezk/globalprotect-openconnect'
+    description: 'The PPA repository, e.g., "yuezk/globalprotect-openconnect"'
     required: true
   gpg_private_key:
     description: 'GPG private key exported as an ASCII armored version or its base64 encoding'
@@ -13,19 +13,31 @@ inputs:
   gpg_passphrase:
     description: 'Passphrase of the GPG private key'
     required: false
-  pkgdir:
-    description: 'The package directory which contains the debian folder'
+  tarball:
+    description: 'The tarball of the package to be published'
     required: true
+  debian_dir:
+    description: 'The debian directory, will be merged with the tarball'
+    required: false
   series:
     description: 'The series to which the package will be published, separated by space. e.g., "bionic focal"'
     required: false
   extra_series:
     description: 'The extra series to which the package will be published, separated by space. e.g., "bionic focal"'
     required: false
-  is_native:
-    description: 'Indicates whether it is a native debian package or not'
+  revision:
+    description: 'The revision of the package'
     required: false
-    default: ''
+    default: '1'
+  deb_email:
+    description: 'The email address of the maintainer'
+    required: true
+  deb_fullname:
+    description: 'The full name of the maintainer'
+    required: true
+  extra_ppa:
+    description: 'The extra PPA this package depends on, separated by space. e.g., "liushuyu-011/rust-bpo-1.75"'
+    required: false
 
 runs:
   using: docker

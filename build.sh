@@ -5,9 +5,14 @@ set -o errexit -o pipefail -o nounset
 REPOSITORY=$INPUT_REPOSITORY
 GPG_PRIVATE_KEY="$INPUT_GPG_PRIVATE_KEY"
 GPG_PASSPHRASE=$INPUT_GPG_PASSPHRASE
-PKGDIR=$INPUT_PKGDIR
-IS_NATIVE=$INPUT_IS_NATIVE
+TARBALL=$INPUT_TARBALL
+DEBIAN_DIR=$INPUT_DEBIAN_DIR
 SERIES=$INPUT_SERIES
+REVISION=$INPUT_REVISION
+DEB_EMAIL=$INPUT_DEB_EMAIL
+DEB_FULLNAME=$INPUT_DEB_FULLNAME
+# Extra ppa separated by space
+EXTRA_PPA=$INPUT_EXTRA_PPA
 
 assert_non_empty() {
     name=$1
@@ -21,7 +26,40 @@ assert_non_empty() {
 assert_non_empty inputs.repository "$REPOSITORY"
 assert_non_empty inputs.gpg_private_key "$GPG_PRIVATE_KEY"
 assert_non_empty inputs.gpg_passphrase "$GPG_PASSPHRASE"
-assert_non_empty inputs.pkgdir "$PKGDIR"
+assert_non_empty inputs.tarball "$TARBALL"
+assert_non_empty inputs.deb_email "$DEB_EMAIL"
+assert_non_empty inputs.deb_fullname "$DEB_FULLNAME"
+
+export DEBEMAIL="$DEB_EMAIL"
+export DEBFULLNAME="$DEB_FULLNAME"
+
+echo "::group::Importing GPG private key..."
+echo "Importing GPG private key..."
+
+GPG_KEY_ID=$(echo "$GPG_PRIVATE_KEY" | gpg --import-options show-only --import | sed -n '2s/^\s*//p')
+echo $GPG_KEY_ID
+echo "$GPG_PRIVATE_KEY" | gpg --batch --passphrase "$GPG_PASSPHRASE" --import
+
+echo "Checking GPG expirations..."
+if [[ $(gpg --list-keys | grep expired) ]]; then
+    echo "GPG key has expired. Please update your GPG key." >&2
+    exit 1
+fi
+
+echo "::endgroup::"
+
+echo "::group::Adding PPA..."
+echo "Adding PPA: $REPOSITORY"
+add-apt-repository -y ppa:$REPOSITORY
+# Add extra PPA if it's been set
+if [[ -n "$EXTRA_PPA" ]]; then
+    for ppa in $EXTRA_PPA; do
+        echo "Adding PPA: $ppa"
+        add-apt-repository -y ppa:$ppa
+    done
+fi
+apt-get update
+echo "::endgroup::"
 
 if [[ -z "$SERIES" ]]; then
     SERIES=$(distro-info --supported)
@@ -32,49 +70,42 @@ if [[ -n "$INPUT_EXTRA_SERIES" ]]; then
     SERIES="$INPUT_EXTRA_SERIES $SERIES"
 fi
 
-echo "::group::Importing GPG private key..."
-GPG_KEY_ID=$(echo "$GPG_PRIVATE_KEY" | gpg --import-options show-only --import | sed -n '2s/^\s*//p')
-echo $GPG_KEY_ID
-echo "$GPG_PRIVATE_KEY" | gpg --batch --passphrase "$GPG_PASSPHRASE" --import
-echo "::endgroup::"
+mkdir -p /tmp/workspace/source
+cp $TARBALL /tmp/workspace/source
+cp -r $DEBIAN_DIR /tmp/workspace/debian
 
 for s in $SERIES; do
-    ubuntu_version=$(distro-info --series $s -r)
-    version="${ubuntu_version:0:5}"
+    ubuntu_version=$(distro-info --series $s -r | cut -d' ' -f1)
 
-    echo "::group::Building deb for: $version ($s)"
+    echo "::group::Building deb for: $ubuntu_version ($s)"
+    
+    cp -r /tmp/workspace /tmp/$s && cd /tmp/$s/source
+    tar -xf * && cd */
 
-    cd $PKGDIR
-    if [[ -z "$IS_NATIVE" ]]; then
-        format_file="debian/source/format"
-        if [[ ! -f "$format_file" ]] || grep -q "native" "$format_file"; then
-            IS_NATIVE="true"
-        fi
-    fi
+    echo "Making non-native package..."
+    debmake
 
-    if [[ "$IS_NATIVE" == "true" ]]; then
-        echo "Making native package..."
-        debmake -n
-    else
-        echo "Making non-native package..."
-        debmake
-    fi
+    cp -r /tmp/$s/debian/* debian/
 
+    # Extract the package name from the debian changelog
+    package=$(dpkg-parsechangelog --show-field Source)
+    pkg_version=$(dpkg-parsechangelog --show-field Version | cut -d- -f1)
+    changes="New upstream release"
+
+    # Create the debian changelog
+    rm -rf debian/changelog
+    dch --create --distribution $s --package $package --newversion $pkg_version-ppa$REVISION~ubuntu$ubuntu_version "$changes"
+
+    # Install build dependencies
     mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes' debian/control
 
-    sed -i"" -re "s/\s\w+;/ $s;/" -re "s/\((.+)-.+\)/(\1-ppa1~ubuntu${version})/" debian/changelog 
+    debuild -S -sa \
+        -k"$GPG_KEY_ID" \
+        -p"gpg --batch --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback"
 
-    if [[ "$IS_NATIVE" == "true" ]]; then
-        echo "y" | debuild -S -sa \
-            -k"$GPG_KEY_ID" \
-            -p"gpg --batch --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback"
-    else
-        debuild -S -sa \
-            -k"$GPG_KEY_ID" \
-            -p"gpg --batch --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback"
-    fi
-    dput $REPOSITORY ../*.changes
+    dput ppa:$REPOSITORY ../*.changes
 
-    rm -rf ../*.{changes,build,buildinfo,deb,ddeb,dsc}
+    echo "Uploaded $package to $REPOSITORY"
+
     echo "::endgroup::"
 done
