@@ -47,7 +47,7 @@ Default to the series that are supported at the moment, i.e., the output of `dis
 
 ```yaml
 name: Publish PPA
-uses: yuezk/publish-ppa-package@dev
+uses: yuezk/publish-ppa-package@v2
 with:
     repository: "yuezk/globalprotect-openconnect"
     gpg_private_key: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
