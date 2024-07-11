@@ -72,7 +72,9 @@ fi
 
 mkdir -p /tmp/workspace/source
 cp $TARBALL /tmp/workspace/source
-cp -r $DEBIAN_DIR /tmp/workspace/debian
+if [[ -n $DEBIAN_DIR ]]; then
+    cp -r $DEBIAN_DIR /tmp/workspace/debian
+fi
 
 for s in $SERIES; do
     ubuntu_version=$(distro-info --series $s -r | cut -d' ' -f1)
@@ -85,7 +87,9 @@ for s in $SERIES; do
     echo "Making non-native package..."
     debmake
 
-    cp -r /tmp/$s/debian/* debian/
+    if [[ -n $DEBIAN_DIR ]]; then
+        cp -r /tmp/$s/debian/* debian/
+    fi
 
     # Extract the package name from the debian changelog
     package=$(dpkg-parsechangelog --show-field Source)
