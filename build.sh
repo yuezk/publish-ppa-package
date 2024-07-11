@@ -49,8 +49,6 @@ fi
 echo "::endgroup::"
 
 echo "::group::Adding PPA..."
-echo "Adding PPA: $REPOSITORY"
-add-apt-repository -y ppa:$REPOSITORY
 # Add extra PPA if it's been set
 if [[ -n "$EXTRA_PPA" ]]; then
     for ppa in $EXTRA_PPA; do
