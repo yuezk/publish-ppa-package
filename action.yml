@@ -31,10 +31,12 @@ inputs:
     default: '1'
   deb_email:
     description: 'The email address of the maintainer'
-    required: true
+    required: false
+    default: 41898282+github-actions[bot]@users.noreply.github.com
   deb_fullname:
     description: 'The full name of the maintainer'
-    required: true
+    required: false
+    default: github-action[bot]
   extra_ppa:
     description: 'The extra PPA this package depends on, separated by space. e.g., "liushuyu-011/rust-bpo-1.75"'
     required: false
