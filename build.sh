@@ -85,7 +85,7 @@ for s in $SERIES; do
     tar -xf * && cd */
 
     echo "Making non-native package..."
-    debmake
+    debmake $INPUT_DEBMAKE_ARGUMENTS
 
     if [[ -n $DEBIAN_DIR ]]; then
         cp -r /tmp/$s/debian/* debian/

@@ -43,6 +43,9 @@ Default to the series that are supported at the moment, i.e., the output of `dis
 ### `extra_ppa`
 **Optional** The extra PPA this package depends on, separated by space. e.g., `"liushuyu-011/rust-bpo-1.75"`.
 
+### `debmake_arguments`
+**Optional** The arguments for debmake
+
 ## Example usage
 
 ```yaml

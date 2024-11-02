@@ -38,6 +38,9 @@ inputs:
   extra_ppa:
     description: 'The extra PPA this package depends on, separated by space. e.g., "liushuyu-011/rust-bpo-1.75"'
     required: false
+  debmake_arguments:
+    description: The arguments for debmake
+    required: false
 
 runs:
   using: docker
