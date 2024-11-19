@@ -1,37 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -o errexit -o pipefail -o nounset
+set -e
+export DEBIAN_FRONTEND=noninteractive
 
-REPOSITORY=$INPUT_REPOSITORY
-GPG_PRIVATE_KEY="$INPUT_GPG_PRIVATE_KEY"
-GPG_PASSPHRASE=$INPUT_GPG_PASSPHRASE
-TARBALL=$INPUT_TARBALL
-DEBIAN_DIR=$INPUT_DEBIAN_DIR
-SERIES=$INPUT_SERIES
-REVISION=$INPUT_REVISION
-DEB_EMAIL=$INPUT_DEB_EMAIL
-DEB_FULLNAME=$INPUT_DEB_FULLNAME
-# Extra ppa separated by space
-EXTRA_PPA=$INPUT_EXTRA_PPA
-
-assert_non_empty() {
-    name=$1
-    value=$2
-    if [[ -z "$value" ]]; then
-        echo "::error::Invalid Value: $name is empty." >&2
-        exit 1
-    fi
-}
-
-assert_non_empty inputs.repository "$REPOSITORY"
-assert_non_empty inputs.gpg_private_key "$GPG_PRIVATE_KEY"
-assert_non_empty inputs.gpg_passphrase "$GPG_PASSPHRASE"
-assert_non_empty inputs.tarball "$TARBALL"
-assert_non_empty inputs.deb_email "$DEB_EMAIL"
-assert_non_empty inputs.deb_fullname "$DEB_FULLNAME"
-
-export DEBEMAIL="$DEB_EMAIL"
-export DEBFULLNAME="$DEB_FULLNAME"
+sudo apt-get update &&
+    sudo apt-get install -y gpg debmake debhelper devscripts equivs \
+        distro-info-data distro-info software-properties-common
 
 echo "::group::Importing GPG private key..."
 echo "Importing GPG private key..."
@@ -53,10 +27,10 @@ echo "::group::Adding PPA..."
 if [[ -n "$EXTRA_PPA" ]]; then
     for ppa in $EXTRA_PPA; do
         echo "Adding PPA: $ppa"
-        add-apt-repository -y ppa:$ppa
+        sudo add-apt-repository -y ppa:$ppa
     done
 fi
-apt-get update
+sudo apt-get update
 echo "::endgroup::"
 
 if [[ -z "$SERIES" ]]; then
@@ -64,8 +38,8 @@ if [[ -z "$SERIES" ]]; then
 fi
 
 # Add extra series if it's been set
-if [[ -n "$INPUT_EXTRA_SERIES" ]]; then
-    SERIES="$INPUT_EXTRA_SERIES $SERIES"
+if [[ -n "$EXTRA_SERIES" ]]; then
+    SERIES="$EXTRA_SERIES $SERIES"
 fi
 
 mkdir -p /tmp/workspace/source
@@ -78,12 +52,12 @@ for s in $SERIES; do
     ubuntu_version=$(distro-info --series $s -r | cut -d' ' -f1)
 
     echo "::group::Building deb for: $ubuntu_version ($s)"
-    
+
     cp -r /tmp/workspace /tmp/$s && cd /tmp/$s/source
-    tar -xf * && cd */
+    tar -xf ./* && cd ./*/
 
     echo "Making non-native package..."
-    debmake $INPUT_DEBMAKE_ARGUMENTS
+    debmake $DEBMAKE_ARGUMENTS
 
     if [[ -n $DEBIAN_DIR ]]; then
         cp -r /tmp/$s/debian/* debian/
@@ -99,7 +73,7 @@ for s in $SERIES; do
     dch --create --distribution $s --package $package --newversion $pkg_version-ppa$REVISION~ubuntu$ubuntu_version "$changes"
 
     # Install build dependencies
-    mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes' debian/control
+    sudo mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes' debian/control
 
     debuild -S -sa \
         -k"$GPG_KEY_ID" \
