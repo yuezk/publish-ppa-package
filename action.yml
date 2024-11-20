@@ -43,5 +43,20 @@ inputs:
     required: false
 
 runs:
-  using: docker
-  image: Dockerfile
+  using: composite
+  steps:
+    - run: ${{github.action_path}}/build.sh
+      shell: bash
+      env:
+        REPOSITORY: ${{inputs.repository}}
+        GPG_PRIVATE_KEY: ${{inputs.gpg_private_key}}
+        GPG_PASSPHRASE: ${{inputs.gpg_passphrase}}
+        TARBALL: ${{inputs.tarball}}
+        DEBIAN_DIR: ${{inputs.debian_dir}}
+        SERIES: ${{inputs.series}}
+        EXTRA_SERIES: ${{inputs.extra_series}}
+        REVISION: ${{inputs.revision}}
+        DEBEMAIL: ${{inputs.deb_email}}
+        DEBFULLNAME: ${{inputs.deb_fullname}}
+        EXTRA_PPA: ${{inputs.extra_ppa}}
+        DEBMAKE_ARGUMENTS: ${{inputs.debmake_arguments}}
