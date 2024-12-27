@@ -25,6 +25,9 @@ inputs:
   extra_series:
     description: 'The extra series to which the package will be published, separated by space. e.g., "bionic focal"'
     required: false
+  excluded_series:
+    description: 'The series to which the package will not be published, separated by space. e.g., "bionic focal"'
+    required: false
   revision:
     description: 'The revision of the package'
     required: false
@@ -55,6 +58,7 @@ runs:
         DEBIAN_DIR: ${{inputs.debian_dir}}
         SERIES: ${{inputs.series}}
         EXTRA_SERIES: ${{inputs.extra_series}}
+        EXCLUDED_SERIES: ${{inputs.excluded_series}}
         REVISION: ${{inputs.revision}}
         DEBEMAIL: ${{inputs.deb_email}}
         DEBFULLNAME: ${{inputs.deb_fullname}}

@@ -37,6 +37,9 @@ Default to the series that are supported at the moment, i.e., the output of `dis
 ### `extra_series`
 **Optional** The extra series to which the package will be published, separated by space. e.g., `"bionic focal"`.
 
+### `excluded_series`
+**Optional** The series to be excluded, separated by space. e.g., `"bionic focal"`.
+
 ### `revision`
 **Optional** The revision of the package, default to `1`.
 
