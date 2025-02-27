@@ -43,9 +43,9 @@ if [[ -n "$EXTRA_SERIES" ]]; then
 fi
 
 mkdir -p /tmp/workspace/source
-cp $TARBALL /tmp/workspace/source
+cp -v $TARBALL /tmp/workspace/source
 if [[ -n $DEBIAN_DIR ]]; then
-    cp -r $DEBIAN_DIR /tmp/workspace/debian
+    cp -rv $DEBIAN_DIR /tmp/workspace/debian
 fi
 
 for s in $SERIES; do
@@ -53,14 +53,14 @@ for s in $SERIES; do
 
     echo "::group::Building deb for: $ubuntu_version ($s)"
 
-    cp -r /tmp/workspace /tmp/$s && cd /tmp/$s/source
+    cp -rv /tmp/workspace /tmp/$s && cd /tmp/$s/source
     tar -xf ./* && cd ./*/
 
     echo "Making non-native package..."
     debmake $DEBMAKE_ARGUMENTS
 
     if [[ -n $DEBIAN_DIR ]]; then
-        cp -r /tmp/$s/debian/* debian/
+        cp -rv /tmp/$s/debian/* debian/
     fi
 
     # Extract the package name from the debian changelog
