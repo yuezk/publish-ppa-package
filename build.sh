@@ -53,7 +53,7 @@ for s in $SERIES; do
 
     echo "::group::Building deb for: $ubuntu_version ($s)"
 
-    cp -rv /tmp/workspace /tmp/$s && cd /tmp/$s/source
+    cp -rv /tmp/workspace /tmp/$s && cd "/tmp/$s/source"
     tar -xf ./* && cd ./*/
 
     echo "Making non-native package..."
