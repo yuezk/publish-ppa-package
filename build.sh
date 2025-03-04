@@ -54,7 +54,13 @@ for s in $SERIES; do
     echo "::group::Building deb for: $ubuntu_version ($s)"
 
     cp -rv /tmp/workspace /tmp/$s && cd /tmp/$s/source
-    tar -xf ./* && cd ./*/
+    tar -xf ./*
+
+    # Safely capture the extracted directory name
+    extracted_dir=$(find . -maxdepth 1 -type d -name "*" -print0 | head -z -n 1 | xargs -0 -n 1 basename)
+
+    # Use eval to safely change directory, handling spaces
+    eval "cd \"./$extracted_dir\""
 
     echo "Making non-native package..."
     debmake $DEBMAKE_ARGUMENTS
