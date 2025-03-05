@@ -53,8 +53,13 @@ for s in $SERIES; do
 
     echo "::group::Building deb for: $ubuntu_version ($s)"
 
-    cp -rv /tmp/workspace /tmp/$s && cd /tmp/$s/source
-    tar -xf ./* && cd ./*/
+    cp -rv /tmp/workspace "/tmp/$s" && cd "/tmp/$s/source" && ls -la
+
+    tarball_root=$(tar -tf ./* | head -n1 | cut -d'/' -f1)
+
+    echo "The tarball root is: $tarball_root"
+
+    tar -xf ./* && cd "$tarball_root"
 
     echo "Making non-native package..."
     debmake $DEBMAKE_ARGUMENTS
