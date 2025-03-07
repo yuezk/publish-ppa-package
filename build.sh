@@ -43,9 +43,9 @@ if [[ -n "$EXTRA_SERIES" ]]; then
 fi
 
 mkdir -p /tmp/workspace/source
-cp -v $TARBALL /tmp/workspace/source
+cp $TARBALL /tmp/workspace/source
 if [[ -n $DEBIAN_DIR ]]; then
-    cp -rv $DEBIAN_DIR /tmp/workspace/debian
+    cp -r $DEBIAN_DIR /tmp/workspace/debian
 fi
 
 for s in $SERIES; do
@@ -53,19 +53,34 @@ for s in $SERIES; do
 
     echo "::group::Building deb for: $ubuntu_version ($s)"
 
-    cp -rv /tmp/workspace "/tmp/$s" && cd "/tmp/$s/source" && ls -la
+    cp -r /tmp/workspace "/tmp/$s" && cd "/tmp/$s/source" && ls -la
 
-    tarball_root=$(tar -tf ./* | head -n1 | cut -d'/' -f1)
+    tarball=$(ls ./*)
+    tarball_root=$(tar -tf "$tarball" | head -n1 | cut -d'/' -f1)
 
-    echo "The tarball root is: $tarball_root"
+    echo "The original tarball root is: $tarball_root"
 
-    tar -xf ./* && cd "$tarball_root"
+    # Create the new tarball if the tarball root is '.'
+    if [[ $tarball_root == '.' ]]; then
+        mkdir upstream && tar -xf "$tarball" -C upstream
+        rm -f "$tarball"
+
+        # Create the new tarball
+        cd upstream && debmake --tar
+        cd .. && rm -rf upstream
+
+        tarball_root=$(ls -d */)
+    else
+        tar -xf "$tarball" && ls -la
+    fi
+
+    ls -l && cd "$tarball_root"
 
     echo "Making non-native package..."
     debmake $DEBMAKE_ARGUMENTS
 
     if [[ -n $DEBIAN_DIR ]]; then
-        cp -rv /tmp/$s/debian/* debian/
+        cp -r /tmp/$s/debian/* debian/
     fi
 
     # Extract the package name from the debian changelog
