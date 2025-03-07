@@ -20,6 +20,20 @@ gpg --output private.pgp --armor --export-secret-key <KEY_ID or EMAIL>
 ### `tarball`
 **Required** The tarball of the package to be published.
 
+>[!Note]
+> The tarball name should be in the format of either `<package-name>_<version>.orig.tar.gz` or `<package-name>-<version>.tar.gz`.
+>
+> The tarball should contain a root directory named `<package-name>-<version>`, which contains the source code of the package.
+>
+> For example, the tarball of the package `globalprotect-openconnect` should be named `globalprotect-openconnect-<version>.tar.gz` and contain a root directory named `globalprotect-openconnect-<version>`.
+> The extracted directory structure should be like this:
+>
+> ```
+> globalprotect-openconnect-<version>/
+> ├── src/
+> ├── ...
+> ```
+
 ### `deb_email`
 **Required** The email address of the maintainer.
 
