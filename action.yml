@@ -25,6 +25,9 @@ inputs:
   extra_series:
     description: 'The extra series to which the package will be published, separated by space. e.g., "bionic focal"'
     required: false
+  package_name:
+    description: 'The name of the package. Format: <name> or <name>_<version>. e.g., "globalprotect-openconnect" or "globalprotect-openconnect_1.0.0"'
+    required: false
   revision:
     description: 'The revision of the package'
     required: false
@@ -55,6 +58,7 @@ runs:
         DEBIAN_DIR: ${{inputs.debian_dir}}
         SERIES: ${{inputs.series}}
         EXTRA_SERIES: ${{inputs.extra_series}}
+        PACKAGE_NAME: ${{inputs.package_name}}
         REVISION: ${{inputs.revision}}
         DEBEMAIL: ${{inputs.deb_email}}
         DEBFULLNAME: ${{inputs.deb_fullname}}

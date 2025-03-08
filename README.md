@@ -17,28 +17,20 @@ gpg --output private.pgp --armor --export-secret-key <KEY_ID or EMAIL>
 ### `gpg_passphrase`
 **Optional** Passphrase of the GPG private key.
 
-### `tarball`
-**Required** The tarball of the package to be published.
-
->[!Note]
-> The tarball name should be in the format of either `<package-name>_<version>.orig.tar.gz` or `<package-name>-<version>.tar.gz`.
->
-> The tarball should contain a root directory named `<package-name>-<version>`, which contains the source code of the package.
->
-> For example, the tarball of the package `globalprotect-openconnect` should be named `globalprotect-openconnect-<version>.tar.gz` and contain a root directory named `globalprotect-openconnect-<version>`.
-> The extracted directory structure should be like this:
->
-> ```
-> globalprotect-openconnect-<version>/
-> ├── src/
-> ├── ...
-> ```
-
 ### `deb_email`
 **Required** The email address of the maintainer.
 
 ### `deb_fullname`
 **Required** The full name of the maintainer.
+
+### `tarball`
+**Required** The tarball of the package to be published.
+
+### `package_name`
+**Optional** The name of the package. Format: `<name>` or `<name>_<version>`. e.g., "globalprotect-openconnect" or "globalprotect-openconnect_1.0.0"
+
+### `revision`
+**Optional** The revision of the package, default to `1`.
 
 ### `debian_dir`
 **Optional** The debian directory, will be merged with the tarball.
@@ -50,9 +42,6 @@ Default to the series that are supported at the moment, i.e., the output of `dis
 
 ### `extra_series`
 **Optional** The extra series to which the package will be published, separated by space. e.g., `"bionic focal"`.
-
-### `revision`
-**Optional** The revision of the package, default to `1`.
 
 ### `extra_ppa`
 **Optional** The extra PPA this package depends on, separated by space. e.g., `"liushuyu-011/rust-bpo-1.75"`.
