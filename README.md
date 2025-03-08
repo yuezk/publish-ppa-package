@@ -32,6 +32,9 @@ gpg --output private.pgp --armor --export-secret-key <KEY_ID or EMAIL>
 ### `revision`
 **Optional** The revision of the package, default to `1`.
 
+### `new_version_template`
+**Optional** The template of the new version, default to `{VERSION}-ppa{REVISION}~ubuntu{SERIES_VERSION}`.
+
 ### `debian_dir`
 **Optional** The debian directory, will be merged with the tarball.
 

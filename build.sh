@@ -11,7 +11,7 @@ echo "::group::Importing GPG private key..."
 echo "Importing GPG private key..."
 
 GPG_KEY_ID=$(echo "$GPG_PRIVATE_KEY" | gpg --import-options show-only --import | sed -n '2s/^\s*//p')
-echo $GPG_KEY_ID
+echo "$GPG_KEY_ID"
 echo "$GPG_PRIVATE_KEY" | gpg --batch --passphrase "$GPG_PASSPHRASE" --import
 
 echo "Checking GPG expirations..."
@@ -27,7 +27,7 @@ echo "::group::Adding PPA..."
 if [[ -n "$EXTRA_PPA" ]]; then
     for ppa in $EXTRA_PPA; do
         echo "Adding PPA: $ppa"
-        sudo add-apt-repository -y ppa:$ppa
+        sudo add-apt-repository -y "ppa:$ppa"
     done
 fi
 sudo apt-get update
@@ -40,6 +40,14 @@ fi
 # Add extra series if it's been set
 if [[ -n "$EXTRA_SERIES" ]]; then
     SERIES="$EXTRA_SERIES $SERIES"
+fi
+
+if [[ -z "$REVISION" ]]; then
+    REVISION=1
+fi
+
+if [[ -z "$NEW_VERSION_TEMPLATE" ]]; then
+    NEW_VERSION_TEMPLATE="{VERSION}-ppa{REVISION}~ubuntu{SERIES_VERSION}"
 fi
 
 rm -rf /tmp/workspace && mkdir -p /tmp/workspace/stage/source
@@ -132,7 +140,7 @@ cd .. && rm -rf "$full_package_name" ./*.orig.* && ls -la
 echo "::endgroup::"
 
 for s in $SERIES; do
-    ubuntu_version=$(distro-info --series $s -r | cut -d' ' -f1)
+    ubuntu_version=$(distro-info --series "$s" -r | cut -d' ' -f1)
 
     echo "::group::Building deb for: $ubuntu_version ($s)"
 
@@ -159,26 +167,27 @@ for s in $SERIES; do
         cp -rvf /tmp/workspace/stage/debian/* debian/
     fi
 
-    # Extract the package name from the debian changelog
-    package=$(dpkg-parsechangelog --show-field Source)
-    pkg_version=$(dpkg-parsechangelog --show-field Version | cut -d- -f1)
-    changes="New upstream release"
-
     # Create the debian changelog
     rm -rf debian/changelog
-    dch --create --distribution $s --package $package --newversion $pkg_version-ppa$REVISION~ubuntu$ubuntu_version "$changes"
+
+    # Generate the version using NEW_VERSION_TEMPLATE
+    newversion=$(echo "$NEW_VERSION_TEMPLATE" | sed "s/{VERSION}/$pkg_version/g" | sed "s/{REVISION}/$REVISION/g" | sed "s/{SERIES_VERSION}/$ubuntu_version/g")
+    dch --create --distribution "$s" \
+        --package "$package" \
+        --newversion "$newversion" \
+        "New upstream release"
 
     # Install build dependencies
     sudo mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes' debian/control
 
     # mk-build-deps will generate .buildinfo and .changes files, remove them, otherwise debuild will fail
-    rm -vf *.buildinfo *.changes
+    rm -vf ./*.buildinfo ./*.changes
 
     debuild -S -sa \
         -k"$GPG_KEY_ID" \
         -p"gpg --batch --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback"
 
-    dput ppa:$REPOSITORY ../*.changes
+    dput "ppa:$REPOSITORY" ../*.changes
 
     echo "Uploaded $package to $REPOSITORY"
 

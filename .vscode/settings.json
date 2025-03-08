@@ -1,9 +1,15 @@
 {
     "cSpell.words": [
+        "buildinfo",
         "createorig",
         "debmake",
+        "debuild",
+        "distro",
+        "dput",
         "endgroup",
+        "newversion",
         "packagename",
-        "parsechangelog"
+        "parsechangelog",
+        "pinentry"
     ]
 }
