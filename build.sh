@@ -61,6 +61,7 @@ echo "::group::Extracting source tarball..."
 
 cd /tmp/workspace/stage/source
 tarball=$(ls ./*)
+tarball_extension="tar.${tarball##*.}"
 tarball_root=$(tar -tf "$tarball" | head -n1 | cut -d'/' -f1)
 
 upstream_dir=upstream
@@ -132,7 +133,7 @@ echo "::endgroup::"
 
 # Create a new tarball with the extracted directory
 echo "::group::Creating a new tarball with debmake..."
-cd "$full_package_name" && debmake --tar -p "$package" -u "$pkg_version" -r "$REVISION" --yes
+cd "$full_package_name" && debmake --tar -p "$package" -u "$pkg_version" -r "$REVISION" -z "$tarball_extension" --yes
 
 echo "Keep only the new tarball..."
 cd .. && rm -rf "$full_package_name" ./*.orig.* && ls -la
