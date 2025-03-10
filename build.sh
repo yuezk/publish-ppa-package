@@ -183,7 +183,14 @@ for s in $SERIES; do
     # mk-build-deps will generate .buildinfo and .changes files, remove them, otherwise debuild will fail
     rm -vf ./*.buildinfo ./*.changes
 
-    debuild -S -sa \
+    # Do not upload the orig tarball unless it's the first revision or it's been explicitly set
+    debuild_options="-S -sd"
+    if [[ $REVISION -eq 1 || -n $ALWAYS_UPLOAD_UPSTREAM_TARBALL ]]; then
+        echo "Upstream tarball will be uploaded..."
+        debuild_options="-S -sa"
+    fi
+
+    debuild $debuild_options \
         -k"$GPG_KEY_ID" \
         -p"gpg --batch --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback"
 

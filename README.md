@@ -52,6 +52,11 @@ Default to the series that are supported at the moment, i.e., the output of `dis
 ### `debmake_arguments`
 **Optional** The arguments for debmake
 
+### `always_upload_upstream_tarball`
+**Optional** Always upload the upstream tarball, default to empty.
+
+By default, the upstream tarball will be uploaded only when the revision is 1.
+
 ## Example usage
 
 ```yaml

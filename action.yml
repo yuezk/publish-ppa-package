@@ -48,6 +48,9 @@ inputs:
   debmake_arguments:
     description: The arguments for debmake
     required: false
+  always_upload_upstream_tarball:
+    description: 'Always upload the upstream tarball'
+    required: false
 
 runs:
   using: composite
@@ -69,3 +72,4 @@ runs:
         DEBFULLNAME: ${{inputs.deb_fullname}}
         EXTRA_PPA: ${{inputs.extra_ppa}}
         DEBMAKE_ARGUMENTS: ${{inputs.debmake_arguments}}
+        ALWAYS_UPLOAD_UPSTREAM_TARBALL: ${{inputs.always_upload_upstream_tarball}}
