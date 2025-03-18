@@ -153,9 +153,9 @@ for s in $SERIES; do
     echo "Making non-native package..."
     if [[ -n $DEBMAKE_ARGUMENTS ]]; then
         echo "Using debmake arguments: $DEBMAKE_ARGUMENTS"
-        debmake $DEBMAKE_ARGUMENTS
+        debmake --yes -z "$tarball_extension" $DEBMAKE_ARGUMENTS
     else
-        debmake --yes
+        debmake --yes -z "$tarball_extension"
     fi
 
     if [[ -d /tmp/workspace/stage/upstream_debian ]]; then
