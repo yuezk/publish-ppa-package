@@ -35,6 +35,13 @@ gpg --output private.pgp --armor --export-secret-key <KEY_ID or EMAIL>
 ### `new_version_template`
 **Optional** The template of the new version, default to `{VERSION}-ppa{REVISION}~ubuntu{SERIES_VERSION}`.
 
+Available variables:
+
+- `{VERSION}`: The version of the package. e.g., `1.0.0`
+- `{REVISION}`: The revision of the package. e.g., `1`
+- `{SERIES}`: The series of the package. e.g., `focal`
+- `{SERIES_VERSION}`: The version of the series. e.g., `20.04`
+
 ### `debian_dir`
 **Optional** The debian directory, will be merged with the tarball.
 

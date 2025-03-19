@@ -33,7 +33,7 @@ inputs:
     required: false
     default: '1'
   new_version_template:
-    description: 'The template of the version of the package. e.g., "{VERSION}-{REVISION}" will be replaced with "1.0.0-1"'
+    description: 'The template of the version of the package. e.g., "{VERSION}-{SERIES}{REVISION}" will be replaced with "1.0.0-focal1"'
     required: false
     default: '{VERSION}-ppa{REVISION}~ubuntu{SERIES_VERSION}'
   deb_email:

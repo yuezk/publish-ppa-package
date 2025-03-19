@@ -172,7 +172,7 @@ for s in $SERIES; do
     rm -rf debian/changelog
 
     # Generate the version using NEW_VERSION_TEMPLATE
-    newversion=$(echo "$NEW_VERSION_TEMPLATE" | sed "s/{VERSION}/$pkg_version/g" | sed "s/{REVISION}/$REVISION/g" | sed "s/{SERIES_VERSION}/$ubuntu_version/g")
+    newversion=$(echo "$NEW_VERSION_TEMPLATE" | sed "s/{VERSION}/$pkg_version/g" | sed "s/{REVISION}/$REVISION/g" | sed "s/{SERIES_VERSION}/$ubuntu_version/g" | sed "s/{SERIES}/$s/g")
     dch --create --distribution "$s" \
         --package "$package" \
         --newversion "$newversion" \
