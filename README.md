@@ -40,6 +40,16 @@ Default to the series that are supported at the moment, i.e., the output of `dis
 ### `revision`
 **Optional** The revision of the package, default to `1`.
 
+### `new_version_template`
+**Optional** The template of the new version, default to `{VERSION}-ppa{REVISION}~ubuntu{SERIES_VERSION}`.
+
+Available variables:
+
+- `{VERSION}`: The version of the package. e.g., `1.0.0`
+- `{REVISION}`: The revision of the package. e.g., `1`
+- `{SERIES}`: The series of the package. e.g., `focal`
+- `{SERIES_VERSION}`: The version of the series. e.g., `20.04`
+
 ### `extra_ppa`
 **Optional** The extra PPA this package depends on, separated by space. e.g., `"liushuyu-011/rust-bpo-1.75"`.
 

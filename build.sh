@@ -42,6 +42,14 @@ if [[ -n "$EXTRA_SERIES" ]]; then
     SERIES="$EXTRA_SERIES $SERIES"
 fi
 
+if [[ -z "$REVISION" ]]; then
+    REVISION=1
+fi
+
+if [[ -z "$NEW_VERSION_TEMPLATE" ]]; then
+    NEW_VERSION_TEMPLATE="{VERSION}-ppa{REVISION}~ubuntu{SERIES_VERSION}"
+fi
+
 mkdir -p /tmp/workspace/source
 cp $TARBALL /tmp/workspace/source
 if [[ -n $DEBIAN_DIR ]]; then
@@ -66,11 +74,16 @@ for s in $SERIES; do
     # Extract the package name from the debian changelog
     package=$(dpkg-parsechangelog --show-field Source)
     pkg_version=$(dpkg-parsechangelog --show-field Version | cut -d- -f1)
-    changes="New upstream release"
 
     # Create the debian changelog
     rm -rf debian/changelog
-    dch --create --distribution $s --package $package --newversion $pkg_version-ppa$REVISION~ubuntu$ubuntu_version "$changes"
+
+    # Generate the version using NEW_VERSION_TEMPLATE
+    newversion=$(echo "$NEW_VERSION_TEMPLATE" | sed "s/{VERSION}/$pkg_version/g" | sed "s/{REVISION}/$REVISION/g" | sed "s/{SERIES_VERSION}/$ubuntu_version/g" | sed "s/{SERIES}/$s/g")
+    dch --create --distribution "$s" \
+        --package "$package" \
+        --newversion "$newversion" \
+        "New upstream release"
 
     # Install build dependencies
     sudo mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes' debian/control
