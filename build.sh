@@ -68,6 +68,7 @@ for s in $SERIES; do
     debmake $DEBMAKE_ARGUMENTS
 
     if [[ -n $DEBIAN_DIR ]]; then
+        # restore the custom debian directory
         cp -r /tmp/$s/debian/* debian/
     fi
 
@@ -86,7 +87,12 @@ for s in $SERIES; do
         "New upstream release"
 
     # Install build dependencies
-    sudo mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes' debian/control
+    sudo mk-build-deps --install --remove debian/control
+
+    # mk-build-deps will generate .buildinfo and .changes files, remove them, otherwise debuild will fail
+    rm -vf ./*.buildinfo ./*.changes
+
+    echo "Building package..."
 
     debuild -S -sa \
         -k"$GPG_KEY_ID" \
