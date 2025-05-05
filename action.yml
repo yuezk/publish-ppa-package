@@ -22,7 +22,7 @@ inputs:
   keep_changelog:
     description: 'Whether to keep the changelog file in the debian directory'
     required: false
-    default: 'false'
+    default: ''
   series:
     description: 'The series to which the package will be published, separated by space. e.g., "bionic focal"'
     required: false
