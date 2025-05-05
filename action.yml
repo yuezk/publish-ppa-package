@@ -19,6 +19,10 @@ inputs:
   debian_dir:
     description: 'The debian directory, will be merged with the tarball'
     required: false
+  keep_changelog:
+    description: 'Whether to keep the changelog file in the debian directory'
+    required: false
+    default: 'false'
   series:
     description: 'The series to which the package will be published, separated by space. e.g., "bionic focal"'
     required: false
@@ -57,6 +61,7 @@ runs:
         GPG_PASSPHRASE: ${{inputs.gpg_passphrase}}
         TARBALL: ${{inputs.tarball}}
         DEBIAN_DIR: ${{inputs.debian_dir}}
+        KEEP_CHANGELOG: ${{inputs.keep_changelog}}
         SERIES: ${{inputs.series}}
         EXTRA_SERIES: ${{inputs.extra_series}}
         REVISION: ${{inputs.revision}}

@@ -50,7 +50,8 @@ if [[ -z "$NEW_VERSION_TEMPLATE" ]]; then
     NEW_VERSION_TEMPLATE="{VERSION}-ppa{REVISION}~ubuntu{SERIES_VERSION}"
 fi
 
-mkdir -p /tmp/workspace/source
+rm -rf /tmp/workspace && mkdir -p /tmp/workspace/source
+
 cp $TARBALL /tmp/workspace/source
 if [[ -n $DEBIAN_DIR ]]; then
     cp -r $DEBIAN_DIR /tmp/workspace/debian
@@ -61,7 +62,7 @@ for s in $SERIES; do
 
     echo "::group::Building deb for: $ubuntu_version ($s)"
 
-    cp -r /tmp/workspace /tmp/$s && cd /tmp/$s/source
+    rm -rf "/tmp/$s" && cp -r /tmp/workspace "/tmp/$s" && cd "/tmp/$s/source"
     tar -xf ./* && cd ./*/
 
     echo "Making non-native package..."
@@ -81,10 +82,31 @@ for s in $SERIES; do
 
     # Generate the version using NEW_VERSION_TEMPLATE
     newversion=$(echo "$NEW_VERSION_TEMPLATE" | sed "s/{VERSION}/$pkg_version/g" | sed "s/{REVISION}/$REVISION/g" | sed "s/{SERIES_VERSION}/$ubuntu_version/g" | sed "s/{SERIES}/$s/g")
-    dch --create --distribution "$s" \
-        --package "$package" \
-        --newversion "$newversion" \
-        "New upstream release"
+
+    echo "New version: $newversion"
+
+    # Use provided changelog if KEEP_CHANGELOG is set
+    if [[ -n $KEEP_CHANGELOG ]]; then
+        # Ensure the changelog exists in the $DEBIAN_DIR
+        if [[ ! -f $DEBIAN_DIR/changelog ]]; then
+            echo "KEEP_CHANGELOG is set, but the changelog file does not exist"
+            echo "Please provide a changelog file in the DEBIAN_DIR directory."
+            exit 1
+        fi
+
+        new_revision=$(echo "$newversion" | cut -d- -f2)
+        # Replace the package name, revision, distribution, and urgency in the changelog
+        sed -E "s/^(\S+) \(([^-]+)-([^)]+)\) ([^;]+); urgency=(\S+)/$package (\2-$new_revision) $s; urgency=medium/" "$DEBIAN_DIR/changelog" \
+            > debian/changelog
+
+        echo "Changelog after replacement:"
+        cat debian/changelog
+    else
+        dch --create --distribution "$s" \
+            --package "$package" \
+            --newversion "$newversion" \
+            "New upstream release"
+    fi
 
     # Install build dependencies
     sudo mk-build-deps --install --remove debian/control
