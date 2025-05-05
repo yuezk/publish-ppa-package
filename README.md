@@ -30,9 +30,9 @@ gpg --output private.pgp --armor --export-secret-key <KEY_ID or EMAIL>
 **Optional** The debian directory, will be merged with the tarball.
 
 ### `keep_changelog`
-**Optional** Whether to keep the changelog, default to `false`.
+**Optional** Whether to keep the changelog, default to empty.
 
-If set to `true`, the changelog file should be provided in the `debian_dir` directory. The action will update the changelog file with the package name, revision and distribution.
+If set to any non-empty value, the changelog file should be provided in the `debian_dir` directory. The action will update the changelog file with the package name, revision and distribution.
 
 ### `series`
 **Optional** The series to which the package will be published, separated by space. e.g., `"bionic focal"`.
