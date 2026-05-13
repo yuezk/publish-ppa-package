@@ -52,7 +52,29 @@ fi
 
 rm -rf /tmp/workspace && mkdir -p /tmp/workspace/source
 
-cp $TARBALL /tmp/workspace/source
+if realpath $TARBALL 2>/dev/null
+then
+    cp $TARBALL /tmp/workspace/source
+else
+# most likely TARBALL is uri
+    pushd /tmp/workspace/source
+    aria2c   -x 16 -s 16 -k 1M   \
+        -c   --allow-overwrite=true   \
+        --auto-file-renaming=false   \
+        --retry-wait=2   --max-tries=0   \
+        --timeout=60   --connect-timeout=10   \
+        --check-certificate=true   \
+        --check-integrity=true   \
+        --continue=true   --enable-rpc=false  \
+        --metalink-preferred-protocol=https   \
+        --metalink-enable-unique-protocol=true   \
+        --follow-metalink=mem   \
+        --follow-torrent=mem   \
+        --file-allocation=none   \
+        --summary-interval=5 $TARBALL
+    popd 
+fi
+
 if [[ -n $DEBIAN_DIR ]]; then
     cp -r $DEBIAN_DIR /tmp/workspace/debian
 fi
