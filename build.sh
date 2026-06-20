@@ -50,13 +50,29 @@ if [[ -z "$NEW_VERSION_TEMPLATE" ]]; then
     NEW_VERSION_TEMPLATE="{VERSION}-ppa{REVISION}~ubuntu{SERIES_VERSION}"
 fi
 
-source_tarballs=( $TARBALL )
-if [[ ${#source_tarballs[@]} -ne 1 ]]; then
-    echo "Expected exactly one source tarball, got ${#source_tarballs[@]}: $TARBALL" >&2
-    exit 1
-fi
+workspace="${GITHUB_WORKSPACE:-$PWD}"
 
-source_tarball="${source_tarballs[0]}"
+resolve_one_path() {
+    local label=$1
+    local pattern=$2
+    local matches=()
+
+    if [[ "$pattern" = /* ]]; then
+        matches=( $pattern )
+    else
+        matches=( "$workspace"/$pattern )
+    fi
+
+    if [[ ${#matches[@]} -ne 1 || ! -e "${matches[0]}" ]]; then
+        echo "Expected exactly one $label, got ${#matches[@]}: $pattern" >&2
+        return 1
+    fi
+
+    printf '%s\n' "${matches[0]}"
+}
+
+source_tarball="$(resolve_one_path "source tarball" "$TARBALL")"
+
 source_archive="$(basename "$source_tarball")"
 case "$source_archive" in
     *.tar.gz) source_archive_extension="tar.gz" ;;
@@ -68,11 +84,20 @@ case "$source_archive" in
         ;;
 esac
 
+debian_dir=""
+if [[ -n $DEBIAN_DIR ]]; then
+    debian_dir="$(resolve_one_path "debian directory" "$DEBIAN_DIR")"
+    if [[ ! -d "$debian_dir" ]]; then
+        echo "debian_dir is not a directory: $DEBIAN_DIR" >&2
+        exit 1
+    fi
+fi
+
 rm -rf /tmp/workspace && mkdir -p /tmp/workspace/source
 
 cp "$source_tarball" /tmp/workspace/source/
-if [[ -n $DEBIAN_DIR ]]; then
-    cp -r "$DEBIAN_DIR" /tmp/workspace/debian
+if [[ -n $debian_dir ]]; then
+    cp -r "$debian_dir" /tmp/workspace/debian
 fi
 
 for s in $SERIES; do
@@ -92,7 +117,7 @@ for s in $SERIES; do
     echo "Making non-native package..."
     debmake $DEBMAKE_ARGUMENTS
 
-    if [[ -n $DEBIAN_DIR ]]; then
+    if [[ -n $debian_dir ]]; then
         # restore the custom debian directory
         cp -r /tmp/$s/debian/* debian/
     fi
@@ -115,7 +140,7 @@ for s in $SERIES; do
     # Use provided changelog if KEEP_CHANGELOG is set
     if [[ -n $KEEP_CHANGELOG ]]; then
         # Ensure the changelog exists in the $DEBIAN_DIR
-        if [[ ! -f $DEBIAN_DIR/changelog ]]; then
+        if [[ ! -f $debian_dir/changelog ]]; then
             echo "KEEP_CHANGELOG is set, but the changelog file does not exist"
             echo "Please provide a changelog file in the DEBIAN_DIR directory."
             exit 1
@@ -123,7 +148,7 @@ for s in $SERIES; do
 
         new_revision=$(echo "$newversion" | cut -d- -f2)
         # Replace the package name, revision, distribution, and urgency in the changelog
-        sed -E "s/^(\S+) \(([^-]+)-([^)]+)\) ([^;]+); urgency=(\S+)/$package (\2-$new_revision) $s; urgency=medium/" "$DEBIAN_DIR/changelog" \
+        sed -E "s/^(\S+) \(([^-]+)-([^)]+)\) ([^;]+); urgency=(\S+)/$package (\2-$new_revision) $s; urgency=medium/" "$debian_dir/changelog" \
             > debian/changelog
 
         echo "Changelog after replacement:"
