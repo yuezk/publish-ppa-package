@@ -50,6 +50,18 @@ if [[ -z "$NEW_VERSION_TEMPLATE" ]]; then
     NEW_VERSION_TEMPLATE="{VERSION}-ppa{REVISION}~ubuntu{SERIES_VERSION}"
 fi
 
+if [[ -z "$INCLUDE_ORIG" ]]; then
+    INCLUDE_ORIG=auto
+fi
+
+case "$INCLUDE_ORIG" in
+    auto|yes|no) ;;
+    *)
+        echo "include_orig must be one of: auto, yes, no" >&2
+        exit 1
+        ;;
+esac
+
 workspace="${GITHUB_WORKSPACE:-$PWD}"
 
 resolve_one_path() {
@@ -100,7 +112,9 @@ if [[ -n $debian_dir ]]; then
     cp -r "$debian_dir" /tmp/workspace/debian
 fi
 
+series_index=0
 for s in $SERIES; do
+    series_index=$((series_index + 1))
     ubuntu_version=$(distro-info --series $s -r | cut -d' ' -f1)
 
     echo "::group::Building deb for: $ubuntu_version ($s)"
@@ -172,7 +186,18 @@ for s in $SERIES; do
 
     echo "Building package..."
 
-    debuild -S -sa \
+    source_upload_option=-sd
+    case "$INCLUDE_ORIG" in
+        yes) source_upload_option=-sa ;;
+        no) source_upload_option=-sd ;;
+        auto)
+            if [[ $series_index -eq 1 ]]; then
+                source_upload_option=-sa
+            fi
+            ;;
+    esac
+
+    debuild -S "$source_upload_option" \
         -k"$GPG_KEY_ID" \
         -p"gpg --batch --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback"
 

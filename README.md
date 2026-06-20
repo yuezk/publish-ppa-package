@@ -55,6 +55,13 @@ Available variables:
 - `{SERIES}`: The series of the package. e.g., `focal`
 - `{SERIES_VERSION}`: The version of the series. e.g., `20.04`
 
+### `include_orig`
+**Optional** Whether to include the upstream orig tarball in the source upload. Valid values are `auto`, `yes`, and `no`. Default is `auto`.
+
+- `auto`: include the orig tarball for the first series in the action run, then omit it for later series.
+- `yes`: always include the orig tarball.
+- `no`: never include the orig tarball. Use this when publishing to another series after the same upstream version already exists in the PPA.
+
 ### `extra_ppa`
 **Optional** The extra PPA this package depends on, separated by space. e.g., `"liushuyu-011/rust-bpo-1.75"`.
 
