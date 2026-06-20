@@ -53,7 +53,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - run: ${{github.action_path}}/build.sh
+    - run: "$GITHUB_ACTION_PATH/build.sh"
       shell: bash
       env:
         REPOSITORY: ${{inputs.repository}}
