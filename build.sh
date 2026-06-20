@@ -109,7 +109,11 @@ for s in $SERIES; do
     fi
 
     # Install build dependencies
-    sudo mk-build-deps --install --remove debian/control
+    sudo mk-build-deps \
+        --install \
+        --remove \
+        --tool="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes" \
+        debian/control
 
     # mk-build-deps will generate .buildinfo and .changes files, remove them, otherwise debuild will fail
     rm -vf ./*.buildinfo ./*.changes
