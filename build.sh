@@ -62,6 +62,14 @@ case "$INCLUDE_ORIG" in
         ;;
 esac
 
+repository_name="${REPOSITORY#ppa:}"
+if [[ "$repository_name" != */* ]]; then
+    echo "repository must be in owner/archive format: $REPOSITORY" >&2
+    exit 1
+fi
+ppa_owner="${repository_name%%/*}"
+ppa_archive="${repository_name#*/}"
+
 workspace="${GITHUB_WORKSPACE:-$PWD}"
 
 resolve_one_path() {
@@ -106,6 +114,17 @@ if [[ -n $DEBIAN_DIR ]]; then
 fi
 
 rm -rf /tmp/workspace && mkdir -p /tmp/workspace/source
+
+dput_config=/tmp/workspace/dput.cf
+cat > "$dput_config" <<EOF
+[ppa]
+fqdn = upload.ppa.launchpad.net
+method = ftp
+incoming = ~$ppa_owner/ubuntu/$ppa_archive/
+login = anonymous
+allow_unsigned_uploads = 0
+passive_ftp = True
+EOF
 
 cp "$source_tarball" /tmp/workspace/source/
 if [[ -n $debian_dir ]]; then
@@ -201,7 +220,7 @@ for s in $SERIES; do
         -k"$GPG_KEY_ID" \
         -p"gpg --batch --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback"
 
-    dput ppa:$REPOSITORY ../*.changes
+    dput -c "$dput_config" ppa ../*.changes
 
     echo "Uploaded $package to $REPOSITORY"
 
