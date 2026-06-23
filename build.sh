@@ -42,6 +42,17 @@ if [[ -n "$EXTRA_SERIES" ]]; then
     SERIES="$EXTRA_SERIES $SERIES"
 fi
 
+ordered_series=""
+for known_series in $(distro-info --all); do
+    for requested_series in $SERIES; do
+        if [[ "$known_series" == "$requested_series" ]]; then
+            ordered_series="$ordered_series $requested_series"
+            break
+        fi
+    done
+done
+SERIES="${ordered_series# }"
+
 if [[ -z "$REVISION" ]]; then
     REVISION=1
 fi
