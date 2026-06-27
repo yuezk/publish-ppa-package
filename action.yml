@@ -14,7 +14,7 @@ inputs:
     description: 'Passphrase of the GPG private key'
     required: false
   tarball:
-    description: 'The tarball of the package to be published'
+    description: 'The local tarball path/glob or HTTP(S) URL of the package to be published'
     required: true
   debian_dir:
     description: 'The debian directory, will be merged with the tarball'

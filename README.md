@@ -18,7 +18,7 @@ gpg --output private.pgp --armor --export-secret-key <KEY_ID or EMAIL>
 **Optional** Passphrase of the GPG private key.
 
 ### `tarball`
-**Required** The tarball of the package to be published.
+**Required** The local tarball path/glob or HTTP(S) URL of the package to be published.
 
 ### `deb_email`
 **Required** The email address of the maintainer.

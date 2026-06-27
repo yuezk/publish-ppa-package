@@ -4,7 +4,7 @@ set -e
 export DEBIAN_FRONTEND=noninteractive
 
 sudo apt-get update &&
-    sudo apt-get install -y gpg debmake debhelper devscripts equivs \
+    sudo apt-get install -y curl gpg debmake debhelper devscripts equivs \
         distro-info-data distro-info software-properties-common
 
 echo "::group::Importing GPG private key..."
@@ -102,9 +102,22 @@ resolve_one_path() {
     printf '%s\n' "${matches[0]}"
 }
 
-source_tarball="$(resolve_one_path "source tarball" "$TARBALL")"
+is_tarball_url() {
+    case "$1" in
+        http://*|https://*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 
-source_archive="$(basename "$source_tarball")"
+if is_tarball_url "$TARBALL"; then
+    source_archive_path="${TARBALL%%[\?#]*}"
+    source_archive="$(basename "$source_archive_path")"
+    source_tarball="/tmp/workspace/source/$source_archive"
+else
+    source_tarball="$(resolve_one_path "source tarball" "$TARBALL")"
+    source_archive="$(basename "$source_tarball")"
+fi
+
 case "$source_archive" in
     *.tar.gz) source_archive_extension="tar.gz" ;;
     *.tar.xz) source_archive_extension="tar.xz" ;;
@@ -137,7 +150,13 @@ allow_unsigned_uploads = 0
 passive_ftp = True
 EOF
 
-cp "$source_tarball" /tmp/workspace/source/
+if is_tarball_url "$TARBALL"; then
+    curl --fail --location --retry 3 --retry-delay 2 \
+        --output "$source_tarball" \
+        "$TARBALL"
+else
+    cp "$source_tarball" /tmp/workspace/source/
+fi
 if [[ -n $debian_dir ]]; then
     cp -r "$debian_dir" /tmp/workspace/debian
 fi
