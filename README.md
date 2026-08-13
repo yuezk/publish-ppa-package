@@ -1,3 +1,5 @@
+
+
 # Publish PPA Package
 
 GitHub action to publish the Ubuntu PPA (Personal Package Archives) packages.
@@ -43,7 +45,7 @@ Default to the series that are supported at the moment, i.e., the output of `dis
 **Optional** The extra series to which the package will be published, separated by space. e.g., `"bionic focal"`.
 
 ### `revision`
-**Optional** The revision of the package, default to `1`.
+**Optional** The revision of the package, defaults to `1`.
 
 ### `new_version_template`
 **Optional** The template of the new version, default to `{VERSION}-ppa{REVISION}~ubuntu{SERIES_VERSION}`.
