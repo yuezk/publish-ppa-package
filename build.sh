@@ -178,7 +178,17 @@ for s in $SERIES; do
     cd "$source_dir"
 
     echo "Making non-native package..."
-    debmake $DEBMAKE_ARGUMENTS
+    if debmake $DEBMAKE_ARGUMENTS; then
+        :
+    else
+        debmake_status=$?
+        if [[ $debmake_status -ne 3 ]]; then
+            echo "debmake failed with exit code $debmake_status" >&2
+            exit "$debmake_status"
+        fi
+
+        echo "Ignoring debmake exit code 3 (license differences reported by lrc)."
+    fi
 
     if [[ -n $debian_dir ]]; then
         # restore the custom debian directory
