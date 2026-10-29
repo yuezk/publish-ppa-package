@@ -161,6 +161,34 @@ if [[ -n $debian_dir ]]; then
     cp -r "$debian_dir" /tmp/workspace/debian
 fi
 
+run_debmake() (
+    # A subshell keeps the wrapper's PATH and cleanup local to this invocation.
+    if real_lrc=$(command -v lrc); then
+        wrapper_dir=$(mktemp -d)
+        trap 'rm -rf "$wrapper_dir"' EXIT
+        cat > "$wrapper_dir/lrc" <<'EOF'
+#!/usr/bin/env bash
+if "$REAL_LRC" "$@"; then
+    exit 0
+else
+    status=$?
+fi
+
+if [[ $status -eq 3 ]]; then
+    echo "Ignoring lrc exit code 3 (license differences reported)." >&2
+    exit 0
+fi
+
+exit "$status"
+EOF
+        chmod +x "$wrapper_dir/lrc"
+        export REAL_LRC="$real_lrc"
+        export PATH="$wrapper_dir:$PATH"
+    fi
+
+    debmake "$@"
+)
+
 series_index=0
 for s in $SERIES; do
     series_index=$((series_index + 1))
@@ -178,17 +206,7 @@ for s in $SERIES; do
     cd "$source_dir"
 
     echo "Making non-native package..."
-    if debmake $DEBMAKE_ARGUMENTS; then
-        :
-    else
-        debmake_status=$?
-        if [[ $debmake_status -ne 3 ]]; then
-            echo "debmake failed with exit code $debmake_status" >&2
-            exit "$debmake_status"
-        fi
-
-        echo "Ignoring debmake exit code 3 (license differences reported by lrc)."
-    fi
+    run_debmake $DEBMAKE_ARGUMENTS
 
     if [[ -n $debian_dir ]]; then
         # restore the custom debian directory

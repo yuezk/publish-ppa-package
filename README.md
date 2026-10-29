@@ -68,7 +68,7 @@ Available variables:
 ### `debmake_arguments`
 **Optional** The arguments for debmake
 
-The action continues if `debmake` exits with status `3`, which indicates license differences reported by `lrc`. Other non-zero exit statuses still fail the action.
+License differences reported by `lrc` (exit code `3`) do not stop package preparation. Other `lrc` failures and nonzero `debmake` exit statuses still fail the action.
 
 ## Example usage
 
