@@ -68,6 +68,8 @@ Available variables:
 ### `debmake_arguments`
 **Optional** The arguments for debmake
 
+The action continues if `debmake` exits with status `3`, which indicates license differences reported by `lrc`. Other non-zero exit statuses still fail the action.
+
 ## Example usage
 
 ```yaml
